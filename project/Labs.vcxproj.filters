@@ -23,13 +23,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\lab01.cpp">
+    <ClCompile Include="..\Source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cube.cpp">
+    <ClCompile Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="grids.cpp">
+    <ClCompile Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\cube.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\grids.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\shaderloader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,10 +51,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cube.h">
+    <ClInclude Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\Camera.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="grids.h">
+    <ClInclude Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\mesh.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\cube.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\grids.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\main.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\shaderloader.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
