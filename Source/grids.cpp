@@ -530,6 +530,8 @@ int grid::createGridArray() {
 			glm::vec3(-1.0f, 0.0f, -0.00f), glm::vec3(0.0f, 1.0f, 0.0f),
 			glm::vec3(1.0f, 0.0f, -0.00f), glm::vec3(0.0f, 1.0f, 0.0f),
 	};
+
+	size = sizeof(gridArray) / sizeof(glm::vec3) / 2;
 	GLuint grid_VAO, grid_VBO;
 	glGenVertexArrays(1, &grid_VAO);
 	glBindVertexArray(grid_VAO);

@@ -180,8 +180,7 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\Camera.cpp" />
-    <ClCompile Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\mesh.cpp" />
+    <ClCompile Include="..\Source\coord.cpp" />
     <ClCompile Include="..\Source\cube.cpp" />
     <ClCompile Include="..\Source\grids.cpp" />
     <ClCompile Include="..\Source\main.cpp" />
@@ -192,8 +191,7 @@
     <None Include="..\Assets\Shaders\vertex_shader.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\Camera.h" />
-    <ClInclude Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\mesh.h" />
+    <ClInclude Include="..\Source\coord.h" />
     <ClInclude Include="..\Source\cube.h" />
     <ClInclude Include="..\Source\grids.h" />
     <ClInclude Include="..\Source\main.h" />

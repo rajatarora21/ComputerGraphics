@@ -1,2 +1,11 @@
 ﻿  main.cpp
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(133): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(156): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(220): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(263): warning C4305: '+=': truncation from 'double' to 'float'
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(268): warning C4305: '-=': truncation from 'double' to 'float'
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(278): warning C4305: '-=': truncation from 'double' to 'float'
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(284): warning C4305: '+=': truncation from 'double' to 'float'
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(290): warning C4305: '+=': truncation from 'double' to 'float'
+i:\university\summer2020\comp371\project\computergraphics\source\main.cpp(295): warning C4305: '-=': truncation from 'double' to 'float'
   Labs.vcxproj -> I:\university\summer2020\comp371\project\ComputerGraphics\project\/../Bin/Labs-Debug.exe

@@ -26,12 +26,6 @@
     <ClCompile Include="..\Source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Source\cube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\shaderloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\coord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,12 +48,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\Camera.h">
-      <Filter>header</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\fall 2019\comp371\project\headerAndClass\mesh.h">
-      <Filter>header</Filter>
-    </ClInclude>
     <ClInclude Include="..\Source\cube.h">
       <Filter>header</Filter>
     </ClInclude>
@@ -67,6 +58,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\shaderloader.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\coord.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>
