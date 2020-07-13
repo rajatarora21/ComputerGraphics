@@ -7,14 +7,20 @@ class Camera
 {
 public:
 	Camera();
-	virtual ~Camera();
+    ~Camera();
+	glm::mat4 GetViewMatrix();
+	glm::mat4 GetProjectionMatrix();
+	glm::mat4 GetViewProjectionMatrix();
+	//glm::vec3 GetCameraPosition() { return cameraPosition; };
 
-	virtual void Update(float dt) = 0;
-
-	virtual glm::mat4 GetViewMatrix() const = 0;
-	virtual glm::mat4 GetProjectionMatrix() const;
-	glm::mat4 GetViewProjectionMatrix() const;
-
-private:
-
+protected:
+	glm::mat4 projectionMatrix;
+	glm::mat4 viewMatrix;
+	
+	
+	float cameraSpeed = 1.0f;
+	float cameraFastSpeed = 3 * cameraSpeed;
+	float cameraHorizontalAngle = 90.0f;
+	float cameraVerticalAngle = 0.0f;
+	float spinningAngle = 0.0f;
 };
