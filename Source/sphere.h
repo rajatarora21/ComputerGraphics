@@ -1,9 +1,9 @@
 #pragma once
-class grid {
+class sphere {
 public:
-	grid();
-	~grid();
-	int createGridArray();
+	sphere();
+	~sphere();
+	int createSphereArray();
 	double getSize() { return size; }
 private:
 	double size;

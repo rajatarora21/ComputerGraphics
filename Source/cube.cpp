@@ -24,54 +24,55 @@ cube::~cube()
 int cube::createCubeArray()
 {
 	// Cube model
-	glm::vec3 vertexArray[] = {  // position,                            color
-		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f), //left - red
-		glm::vec3(-0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+	glm::vec3 vertexArray[] = {
+		// position,					texCoord						normal
+		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(-1,0,0), //left
+		glm::vec3(-0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(-1,0,0),
+		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(-1,0,0),
 
-		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(-1,0,0),
+		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(-1,0,0),
+		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(-1,0,0),
 
-		glm::vec3(0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f), // far - red
-		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f, 0.5f,-0.5f),  glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(0,0,-1), // far
+		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,0,-1),
+		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(0.0f, 1.0f, 0.0f),glm::vec3(0,0,-1),
 
-		glm::vec3(0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f, 0.5f,-0.5f),  glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(0,0,-1),
+		glm::vec3(0.5f,-0.5f,-0.5f),  glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(0,0,-1),
+		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,0,-1),
 
-		glm::vec3(0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), // bottom - red
-		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f,-0.5f, 0.5f),  glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(0,-1,0), // bottom
+		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,-1,0),
+		glm::vec3(0.5f,-0.5f,-0.5f),  glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(0,-1,0),
 
-		glm::vec3(0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f,-0.5f, 0.5f),  glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(0,-1,0),
+		glm::vec3(-0.5f,-0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f),glm::vec3(0,-1,0),
+		glm::vec3(-0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,-1,0),
 
-		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), // near - red
-		glm::vec3(-0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f),glm::vec3(0,0,1), // near
+		glm::vec3(-0.5f,-0.5f, 0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,0,1),
+		glm::vec3(0.5f,-0.5f, 0.5f),  glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(0,0,1),
 
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f, 0.5f, 0.5f),  glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(0,0,1),
+		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f),glm::vec3(0,0,1),
+		glm::vec3(0.5f,-0.5f, 0.5f),  glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(0,0,1),
 
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), // right - red
-		glm::vec3(0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(1,0,0),  // right
+		glm::vec3(0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(1,0,0),
+		glm::vec3(0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(1,0,0),
 
-		glm::vec3(0.5f,-0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(0.5f,-0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f,-0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(1,0,0),
+		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(1,0,0),
+		glm::vec3(0.5f,-0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f),glm::vec3(1,0,0),
 
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f), // top - red
-		glm::vec3(0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
+		glm::vec3(0.5f, 0.5f, 0.5f),  glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(0,1,0), // top
+		glm::vec3(0.5f, 0.5f,-0.5f),  glm::vec3(1.0f, 0.0f, 0.0f),glm::vec3(0,1,0),
+		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,1,0),
 
-		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(1.0f, 0.0f, 0.0f),
-		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 0.0f, 0.0f)
+		glm::vec3(0.5f, 0.5f, 0.5f),  glm::vec3(1.0f, 1.0f, 0.0f),glm::vec3(0,1,0),
+		glm::vec3(-0.5f, 0.5f,-0.5f), glm::vec3(0.0f, 0.0f, 0.0f),glm::vec3(0,1,0),
+		glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0.0f, 1.0f, 0.0f),glm::vec3(0,1,0),
 	};
 
 
@@ -91,7 +92,7 @@ int cube::createCubeArray()
 		3,                   // size
 		GL_FLOAT,            // type
 		GL_FALSE,            // normalized?
-		2 * sizeof(vec3), // stride - each vertex contain 2 vec3 (position, color)
+		3 * sizeof(vec3), // stride - each vertex contain 2 vec3 (position, color)
 		(void*)0             // array buffer offset
 	);
 	glEnableVertexAttribArray(0);
@@ -101,10 +102,19 @@ int cube::createCubeArray()
 		3,
 		GL_FLOAT,
 		GL_FALSE,
-		2 * sizeof(vec3),
+		3 * sizeof(vec3),
 		(void*)sizeof(vec3)      // color is offseted a vec3 (comes after position)
 	);
 	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2,                            // attribute 1 matches aColor in Vertex Shader
+		3,
+		GL_FLOAT,
+		GL_FALSE,
+		3 * sizeof(vec3),
+		(void*)(sizeof(vec3)*2)      // color is offseted a vec3 (comes after position)
+	);
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 	glBindVertexArray(0);

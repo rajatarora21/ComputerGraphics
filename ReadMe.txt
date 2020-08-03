@@ -11,3 +11,9 @@ right arrow ¡ú R-x, up arrow ¡ú Ry, down arrow ¡ú R-y.
 A ¡ú move left, D ¡ú move right, W ¡ú move up, S ¡ú move down.
 
 Z ¡ú rotate left 5 degrees about Y axis, X ¡ú rotate right 5 degrees about Y axis.
+
+C ¡ú rotate left 5 degrees about X axis, V ¡ú rotate right 5 degrees about X axis.
+
+B ¡ú shear along +X axis, N ¡ú shear along -X axis.
+
+G ¡úcontinue shear along +X axis, H ¡ú ¡úcontinue  shear along -X axis,

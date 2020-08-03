@@ -9,6 +9,7 @@
 #include "shaderloader.h"
 #include "cube.h"
 #include "coord.h"
+#include "sphere.h"
 
 //initializing OpenGL libraries
 #define GLEW_STATIC 1   
@@ -19,9 +20,13 @@
 #include <glm/glm.hpp>
 
 #include <iostream>
+#include <vector>
 #include <glm/gtc/type_ptr.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtx/transform.hpp>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 using namespace std;
 using namespace glm;
@@ -40,6 +45,172 @@ void setProjectionMatrix(int shader, mat4 projectionMatrix)
 }
 
 //main function
+
+//letter and digit transform data
+struct LetterDigitData
+{
+	vector<mat4> letterMatrices;	//letter's cube transforms
+	vector<mat4> digitMatrices;		//digit's cube transforms
+	mat4 translation;
+	mat4 rotation;
+	mat4 scaling;
+	mat4 shearing;
+	bool continueShearXPos;
+	bool continueShearXNeg;
+};
+
+LetterDigitData letterDigitDatas[5] = {
+	{
+		//draw sujects first name zhen and 3th alphabet E
+		{
+			glm::translate(mat4(1.0f), vec3(-0.06f,0.00f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.15f, 0.02f)), // left of E
+			glm::translate(mat4(1.0f), vec3(-0.02f,0.07f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)), //top of E
+			glm::translate(mat4(1.0f), vec3(-0.02f,0.00f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),//mid of E
+			glm::translate(mat4(1.0f), vec3(-0.02f,-0.08f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),//botom of E
+		},
+		// student ID 27117507 and 4th digit is 1
+		{
+			glm::translate(mat4(1.0f), vec3(0.14f,-0.01f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.17f, 0.02f)),
+		},
+		glm::translate(mat4(1.0f), vec3(35.0f,5.0f,-35.0f)),//translation
+		mat4(1),//rotation
+		glm::scale(mat4(1),vec3(50)),//scaling
+		mat4(1),//shearing
+		false,
+		false,
+	},
+	{
+		//V and 7 for Yuvraj.
+		{
+			//V
+			glm::translate(mat4(1.0f), vec3(-0.11f,-0.03f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f)),
+			glm::translate(mat4(1.0f), vec3(-0.05f,-0.03f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(165.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f)),
+		},
+		{
+			// 7
+			glm::translate(mat4(1.0f), vec3(0.06f,0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			glm::translate(mat4(1.0f), vec3(0.05f,-0.05f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			// top of 7
+			glm::translate(mat4(1.0f), vec3(0.03f,0.06f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),
+		},
+		glm::translate(mat4(1.0f), vec3(-35.0f,5.0f,35.0f)),//translation
+		mat4(1),//rotation
+		glm::scale(mat4(1),vec3(50)),//scaling
+		mat4(1),//shearing
+		false,
+		false,
+	},
+	{
+		//V and 1 for Divyluv
+		{
+			//V
+			glm::translate(mat4(1.0f), vec3(-0.06f,-0.00f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f)),
+			glm::translate(mat4(1.0f), vec3(0.00f,-0.00f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(165.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f)),
+		},
+		{
+			//1
+			glm::translate(mat4(1.0f), vec3(0.06f,0.01f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.17f, 0.02f)),
+		},
+		glm::translate(mat4(1.0f), vec3(-35.0f,5.0f,-35.0f)),//translation
+		mat4(1),//rotation
+		glm::scale(mat4(1),vec3(50)),//scaling
+		mat4(1),//shearing
+		false,
+		false,
+	},
+	{
+		//Y and 4 for Yiyang
+		{
+			glm::translate(mat4(1.0f), vec3(-0.14f,0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			glm::translate(mat4(1.0f), vec3(-0.11f,-0.05f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			glm::translate(mat4(1.0f), vec3(-0.08f,0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+		},
+		//4
+		{
+			glm::translate(mat4(1.0f), vec3(0.11f,0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			//mid of 4
+			glm::translate(mat4(1.0f), vec3(0.07f,-0.01f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),
+			// top right of 4
+			glm::translate(mat4(1.0f), vec3(0.01f,0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			//bottom right
+			glm::translate(mat4(1.0f), vec3(0.11f,-0.05f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+		},
+		glm::translate(mat4(1.0f), vec3(35.0f,5.0f,35.0f)),//translation
+		mat4(1),//rotation
+		glm::scale(mat4(1),vec3(50)),//scaling
+		mat4(1),//shearing
+		false,
+		false,
+	},
+	{
+		//J and 7 for Rajat
+		{
+			glm::translate(mat4(1.0f), vec3(-0.12f,-0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			// botom of J
+			glm::translate(mat4(1.0f), vec3(-0.07f,-0.06f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),
+			// top right of J
+			glm::translate(mat4(1.0f), vec3(-0.02f,0.05f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			// bottom right of J
+			glm::translate(mat4(1.0f), vec3(-0.02f,-0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+		},
+		{
+			// 7
+			glm::translate(mat4(1.0f), vec3(0.08f,0.05f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			glm::translate(mat4(1.0f), vec3(0.07f,-0.03f,0.00f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f)),
+			// top of 7
+			glm::translate(mat4(1.0f), vec3(0.05f,0.08f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),
+		},
+		glm::translate(mat4(1.0f), vec3(0.0f,5.0f,0.0f)),//translation
+		mat4(1),//rotation
+		glm::scale(mat4(1),vec3(50)),//scaling
+		mat4(1),//shearing
+		false,
+		false,
+	},
+};
+
+int editingModelId = -1;
+
+void keyCallback(GLFWwindow *window, int keyCody, int scan,int action, int mods)
+{
+	if (!mods&&action==GLFW_PRESS)
+	{
+		if (editingModelId >= 0 && editingModelId<5)
+		{
+			if (keyCody == 'G')
+			{
+				letterDigitDatas[editingModelId].continueShearXPos = !letterDigitDatas[editingModelId].continueShearXPos;
+				letterDigitDatas[editingModelId].continueShearXNeg = false;
+				for (size_t i = 0; i < 5; i++)
+				{
+					if (i != editingModelId)
+					{
+						letterDigitDatas[i].continueShearXNeg = false;
+						letterDigitDatas[i].continueShearXPos = false;
+					}
+				}
+			}
+			if (keyCody == 'H')
+			{
+				letterDigitDatas[editingModelId].continueShearXNeg = !letterDigitDatas[editingModelId].continueShearXNeg;
+				letterDigitDatas[editingModelId].continueShearXPos = false;
+				for (size_t i = 0; i < 5; i++)
+				{
+					if (i != editingModelId)
+					{
+						letterDigitDatas[i].continueShearXNeg = false;
+						letterDigitDatas[i].continueShearXPos = false;
+					}
+				}
+			}
+		}
+
+		if (keyCody>='1'&&keyCody<='5')
+		{
+			editingModelId = keyCody - '1';
+		}
+	}
+}
 
 int main(int argc, char*argv[])
 {
@@ -61,6 +232,8 @@ int main(int argc, char*argv[])
 
 	// Create Window, resolution is 1024x768
 	GLFWwindow* window = glfwCreateWindow(1024, 768, "PA1", NULL, NULL);
+	
+	glfwSetKeyCallback(window, keyCallback);
 	if (window == NULL)
 	{
 		std::cerr << "Failed to create GLFW window" << std::endl;
@@ -79,68 +252,150 @@ int main(int argc, char*argv[])
 	}
 
 
-
-
-
 	// Shaders
-	shaderloader* shader = new shaderloader();
-	GLuint shaderProgram = shader->getProgramId();
-	glUseProgram(shaderProgram);
+	GLuint textureLitProgram;
+	GLuint unlitProgram;
+	GLuint depthProgram;
 
+	GLuint currentProgram;
 
-	vec3 cameraPosition(1.2f, 0.3f, 1.2f);
-	vec3 cameraLookAt(0.0f, 0.0f, -1.0f);
+#if defined(PLATFORM_OSX)
+	std::string shaderPathPrefix = "Shaders/";
+#else
+	std::string shaderPathPrefix = "../Assets/Shaders/";
+#endif
+	unlitProgram = shaderloader::LoadShaders(shaderPathPrefix + "vertex_shader_color.glsl", shaderPathPrefix + "fragment_shader_color.glsl");
+	textureLitProgram = shaderloader::LoadShaders(shaderPathPrefix + "vertex_shader.glsl", shaderPathPrefix + "fragment_shader.glsl");
+	depthProgram = shaderloader::LoadShaders(shaderPathPrefix + "vertex_depth.glsl", shaderPathPrefix + "fragment_depth.glsl");
+
+	vec3 cameraPosition(0.0f, 50.0f, 80.0f);
+	vec3 cameraLookAt(0.0f, -5.0f, -8.0f);
 	vec3 cameraUp(0.0f, 1.0f, 0.0f);
-	float cameraHorizontalAngle = 60.0f;
-	float cameraVerticalAngle = 0.0f;
 	float cameraSpeed = 1.0f;
-
-	mat4 projectionMatrix = glm::perspective(15.0f,            // field of view in degrees
-		800.0f / 600.0f,  // aspect ratio
-		0.01f, 100.0f);   // near and far (near > 0)
-
-	GLuint projectionMatrixLocation = glGetUniformLocation(shaderProgram, "projectionMatrix");
-	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
-
-	// Set initial view matrix
-	mat4 viewMatrix = lookAt(cameraPosition,  // eye
-		cameraPosition + cameraLookAt,  // center
-		cameraUp); // up
-
-	GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-	glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
 
 	grid* g = new grid();
 	int vao_grid = g->createGridArray();
 	cube* cube1 = new cube();
-	int vao_E = cube1->createCubeArray();
-	int vao_V = cube1->createCubeArray();
-	int vao_V2 = cube1->createCubeArray();
-	int vao_Y = cube1->createCubeArray();
-	int vao_cube_J = cube1->createCubeArray();
+	int vao_cube = cube1->createCubeArray();
 	coord* axies = new coord();
 	int vao_axis = axies->createAxisArray();
+	sphere* ball = new sphere();
+	int vao_ball = ball->createSphereArray();
 
-	float factor = 1.0f;
+
+	GLuint grassTex;
+	GLuint boxTex;
+	GLuint metalTex;
+	GLuint ballTex;
+
+	{
+		int w, h;
+		unsigned char *pixels = stbi_load("../Assets/Textures/grass.jpg", &w, &h, 0, 4);
+		if (pixels)
+		{
+			glGenTextures(1, &grassTex);
+			glBindTexture(GL_TEXTURE_2D, grassTex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			free(pixels);
+		}
+	}
+
+	{
+		int w, h;
+		unsigned char *pixels = stbi_load("../Assets/Textures/crate.jpg", &w, &h, 0, 4);
+		if (pixels)
+		{
+			glGenTextures(1, &boxTex);
+			glBindTexture(GL_TEXTURE_2D, boxTex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			free(pixels);
+		}
+	}
+
+	{
+		int w, h;
+		unsigned char *pixels = stbi_load("../Assets/Textures/metal.jpg", &w, &h, 0, 4);
+		if (pixels)
+		{
+			glGenTextures(1, &metalTex);
+			glBindTexture(GL_TEXTURE_2D, metalTex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			free(pixels);
+		}
+	}
+
+	{
+		int w, h;
+		unsigned char *pixels = stbi_load("../Assets/Textures/bubble.png", &w, &h, 0, 4);
+		if (pixels)
+		{
+			glGenTextures(1, &ballTex);
+			glBindTexture(GL_TEXTURE_2D, ballTex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			free(pixels);
+		}
+	}
+
+	auto err = glGetError();
+
+	//depth render target
+	GLuint depthTex;
+	glGenTextures(1, &depthTex);
+	glBindTexture(GL_TEXTURE_2D, depthTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	//frame buffer
+	GLuint fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTex, 0);
+	glDrawBuffer(GL_NONE);
+	auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status !=GL_FRAMEBUFFER_COMPLETE)
+	{
+		printf("fbo error!");
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	float lastFrameTime = glfwGetTime();
 	int lastMouseLeftState = GLFW_RELEASE;
 	double lastMousePosX, lastMousePosY;
 	glfwGetCursorPos(window, &lastMousePosX, &lastMousePosY);
 	GLuint worldmatrixlocation;
 	GLuint mode = GL_TRIANGLES;
-	mat4 worldMatrix;
-	mat4 transformMatrix_1(1.0f);
-	mat4 transformMatrix_2(1.0f);
-	mat4 transformMatrix_3(1.0f);
-	mat4 transformMatrix_4(1.0f);
-	mat4 transformMatrix_5(1.0f);
-
-
-	mat4 RotatMatrix_1(1.0f);
-	mat4 RotatMatrix_2(1.0f);
-	mat4 RotatMatrix_3(1.0f);
-	mat4 RotatMatrix_4(1.0f);
-	mat4 RotatMatrix_5(1.0f);
+	mat4 worldMatrix=mat4(1);
 
 
 	mat4 center = glm::rotate(mat4(1.0f), glm::radians(90.0f), vec3(0.0f, 1.0f, 0.0f)) * glm::translate(mat4(1.0), vec3(-0.34f, 0.0f, 0.52f));
@@ -151,368 +406,224 @@ int main(int argc, char*argv[])
 	glEnable(GL_CULL_FACE);
 	// Enable z buffer
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 	// Entering Main Loop
 
 	// Black background
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearDepth(1.0f);
 	while (!glfwWindowShouldClose(window))
 	{
-		// Each frame, reset color of each pixel to glClearColor
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		float dt = glfwGetTime() - lastFrameTime;
 		lastFrameTime += dt;
 
-		//draw sujects first name zhen and 3th alphabet E
+		double mouseX, mouseY;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
+		double dx = mouseX - lastMousePosX;
+		double dy = mouseY - lastMousePosY;
+		lastMousePosX = mouseX;
+		lastMousePosY = mouseY;
+
+		//update model shearing
+		for (size_t i = 0; i < 5; i++)
 		{
-			// left of E
-			glBindVertexArray(vao_E);
-			worldMatrix = RotatMatrix_1 * transformMatrix_1*center*
-				glm::translate(mat4(1.0f), vec3(0.2f, 0.2f, -0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.15f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-			// top of E
-			glBindVertexArray(vao_E);
-			worldMatrix = RotatMatrix_1 * transformMatrix_1*center*
-				glm::translate(mat4(1.0f), vec3(0.24f, 0.27f, -0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-			//mid of E
-			glBindVertexArray(vao_E);
-			worldMatrix = RotatMatrix_1 * transformMatrix_1*center*
-				glm::translate(mat4(1.0f), vec3(0.24f, 0.2f, -0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-			// botom of E
-			glBindVertexArray(vao_E);
-			worldMatrix = RotatMatrix_1 * transformMatrix_1*center*
-				glm::translate(mat4(1.0f), vec3(0.24f, 0.12f, -0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-			// student ID 27117507 and 4th digit is 1
-			glBindVertexArray(vao_E);
-			worldMatrix = RotatMatrix_1 * transformMatrix_1*center*
-				glm::translate(mat4(1.0f), vec3(0.4f, 0.19f, -0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.17f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
+			if (letterDigitDatas[i].continueShearXPos)
+			{
+				mat4 shearing = mat4(
+					1, 0, 0, 0,
+					0.1*dt, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1);
+				letterDigitDatas[i].shearing = letterDigitDatas[i].shearing*shearing;
+			}
+			if (letterDigitDatas[i].continueShearXNeg)
+			{
+				mat4 shearing = mat4(
+					1, 0, 0, 0,
+					-0.1*dt, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1);
+				letterDigitDatas[i].shearing = letterDigitDatas[i].shearing*shearing;
+			}
 		}
 
 
-
-
-
-
-
-
-		//V and 7 for Yuvraj.
+		mat4 lightVP;
+		//shadow pass
 		{
+			glClearDepth(1);
+			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+			glViewport(0, 0, 1024, 1024);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			currentProgram = depthProgram;
+			glUseProgram(depthProgram);
+			mat4 projection = perspective<float>(radians(160.0f), 1.0f, 0.1f, 50);
 
-			//V
-			glBindVertexArray(vao_V);
-			worldMatrix = RotatMatrix_2 * transformMatrix_2*center*
-				glm::translate(mat4(1.0f), vec3(-0.74f, 0.18f, 0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
+			vec4 lightPos = vec4(0, 30, 0, 1);
+			vec4 lightDir = vec4(0, -1, 0, 0);
+			vec4 lightUp = vec4(1, 0, 0, 0);
+
+			glEnable(GL_POLYGON_OFFSET_FILL);
+			glPolygonOffset(2, 2);
+
+			mat4 view = lookAt(vec3(worldMatrix*lightPos),  // eye
+				vec3(worldMatrix*lightPos)+ vec3(worldMatrix*lightDir),  // center
+				vec3(worldMatrix*lightUp)); // up
+			setProjectionMatrix(currentProgram, projection);
+			setViewMatrix(currentProgram, view);
+
+			lightVP = projection*view;
+			for (auto &data : letterDigitDatas)
+			{
+				glBindTexture(GL_TEXTURE_2D, boxTex);
+				for (auto &m : data.letterMatrices)
+				{
+					glBindVertexArray(vao_cube);
+					mat4 modelMatrix = worldMatrix * data.translation * data.rotation *data.scaling*data.shearing*m;
+					worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+					glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &modelMatrix[0][0]);
+					glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
+					glBindVertexArray(0);
+				}
+				glBindTexture(GL_TEXTURE_2D, metalTex);
+				for (auto &m : data.digitMatrices)
+				{
+					glBindVertexArray(vao_cube);
+					mat4 modelMatrix = worldMatrix * data.translation * data.rotation *data.scaling*data.shearing*m;
+					worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+					glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &modelMatrix[0][0]);
+					glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
+					glBindVertexArray(0);
+				}
+			}
+
+			//draw grids
+			glBindVertexArray(vao_grid);
+			mat4 gridWorldMatrix = worldMatrix * mat4(1);
+			worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &gridWorldMatrix[0][0]);
+			glDrawArrays(GL_TRIANGLES, 0, g->getSize()); // 3 vertices, starting at vertex array index 0
 			glBindVertexArray(0);
 
-			glBindVertexArray(vao_V);
-			worldMatrix = RotatMatrix_2 * transformMatrix_2*center*
-				glm::translate(mat4(1.0f), vec3(-0.68f, 0.18f, 0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(165.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
-
-			// 7
-			glBindVertexArray(vao_V);
-			worldMatrix = RotatMatrix_2 * transformMatrix_2*center*
-				glm::translate(mat4(1.0f), vec3(-0.57f, 0.24f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-
-			glBindVertexArray(vao_V);
-			worldMatrix = RotatMatrix_2 * transformMatrix_2*center*
-				glm::translate(mat4(1.0f), vec3(-0.58f, 0.16f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-			// top of 7
-			glBindVertexArray(vao_V);
-			worldMatrix = RotatMatrix_2 * transformMatrix_2*center*
-				glm::translate(mat4(1.0f), vec3(-0.6f, 0.27f, 0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
+			glDisable(GL_POLYGON_OFFSET_FILL);
 		}
 
+		int width;
+		int height;
+		glfwGetWindowSize(window, &width, &height);
+		glViewport(0, 0, width, height);
+
+		// Each frame, reset color of each pixel to glClearColor
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		currentProgram = textureLitProgram;
+		glUseProgram(currentProgram);
+
+		mat4 projection = perspective<float>(radians(60.0f), float(width) / height, 0.01f, 500);
+		mat4 view = lookAt(cameraPosition,  // eye
+			cameraPosition + cameraLookAt,  // center
+			cameraUp); // up
+		setProjectionMatrix(currentProgram, projection);
+		setViewMatrix(currentProgram, view);
+
+		GLuint viewMatrixLocation = glGetUniformLocation(currentProgram, "lightTransformMatrix");
+		glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &worldMatrix[0][0]);
 
 
-		//V and 1 for Divyluv
+		int lightVPLoc = glGetUniformLocation(currentProgram, "lightVP");
+		int texLoc = glGetUniformLocation(currentProgram, "tex");
+		int shadiwTexLoc = glGetUniformLocation(currentProgram, "shadowTex");
+		int roughnessLoc = glGetUniformLocation(currentProgram, "roughness");
+
+		glUniform1i(texLoc, 0);
+		glUniform1i(shadiwTexLoc, 1);
+		glUniformMatrix4fv(lightVPLoc,1,GL_FALSE,value_ptr(lightVP));
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, depthTex);
+
+		//draw letter and digit
+		for (auto &data : letterDigitDatas)
 		{
-			//V
-			glBindVertexArray(vao_V2);
-			worldMatrix = RotatMatrix_3 * transformMatrix_3*center*
-				glm::translate(mat4(1.0f), vec3(-0.74f, 0.18f, -1.3f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, boxTex);
+			for (auto &m : data.letterMatrices)
+			{
+				glBindVertexArray(vao_cube);
+				mat4 modelMatrix = worldMatrix * data.translation * data.rotation *data.scaling*data.shearing*m;
+				worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+				glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &modelMatrix[0][0]);
+				glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
+				glBindVertexArray(0);
+			}
 
-			glBindVertexArray(vao_V2);
-			worldMatrix = RotatMatrix_3 * transformMatrix_3*center*
-				glm::translate(mat4(1.0f), vec3(-0.68f, 0.18f, -1.3f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(165.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.18f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
+			glUniform1f(roughnessLoc, 0.0);
 
-			//1
-			glBindVertexArray(vao_V2);
-			worldMatrix = RotatMatrix_3 * transformMatrix_3*center*
-				glm::translate(mat4(1.0f), vec3(-0.62f, 0.19f, -1.3f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.17f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, metalTex);
+			for (auto &m : data.digitMatrices)
+			{
+				glBindVertexArray(vao_cube);
+				mat4 modelMatrix = worldMatrix * data.translation * data.rotation *data.scaling*data.shearing*m;
+				worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+				glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &modelMatrix[0][0]);
+				glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
+				glBindVertexArray(0);
+			}
+			glUniform1f(roughnessLoc, 1.0);
 		}
 
-
-
-
-
-
-		
-		//Y and 4 for Yiyang
-		{
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.1f, 0.24f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.13f, 0.16f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.16f, 0.24f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-			//4
-
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.35f, 0.24f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36);
-			glBindVertexArray(0);
-
-
-
-
-			//mid of 4
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.31f, 0.2f, 0.5f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36);
-			glBindVertexArray(0);
-
-
-
-
-			// top right of 4
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.25f, 0.24f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36);
-			glBindVertexArray(0);
-			//bottom right
-			glBindVertexArray(vao_Y);
-			worldMatrix = RotatMatrix_4 * transformMatrix_4*center*
-				glm::translate(mat4(1.0f), vec3(1.35f, 0.16f, 0.5f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36);
-			glBindVertexArray(0);
-
-
-		}
-
-
-		//J and 7 for Rajat
-		{
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(0.9f, 0.16f, -1.3f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-
-
-
-			// botom of J
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(0.95f, 0.13f, -1.3f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-
-
-
-
-			// top right of J
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(1.0f, 0.24f, -1.3f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36);
-			glBindVertexArray(0);
-
-
-			// bottom right of J
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(1.0f, 0.16f, -1.3f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36);
-			glBindVertexArray(0);
-
-			// 7
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(1.1f, 0.24f, -1.3f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(1.09f, 0.16f, -1.3f)) *
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.08f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-			// top of 7
-			glBindVertexArray(vao_cube_J);
-			worldMatrix = RotatMatrix_5 * transformMatrix_5*center*
-				glm::translate(mat4(1.0f), vec3(1.07f, 0.27f, -1.3f)) *
-				glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*
-				glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f));
-			worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
-			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &worldMatrix[0][0]);
-			glDrawArrays(mode, 0, 36); // 3 vertices, starting at vertex array index 0
-			glBindVertexArray(0);
-
-
-		}
-
-
-
-
-
-
-
-
-
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, grassTex);
 		//draw grids
 		glBindVertexArray(vao_grid);
-		mat4 gridWorldMatrix(1.0f);
-		worldmatrixlocation = glGetUniformLocation(shaderProgram, "worldMatrix");
+		mat4 gridWorldMatrix = worldMatrix * mat4(1);
+		worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
 		glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &gridWorldMatrix[0][0]);
-		glDrawArrays(GL_LINES, 0, g->getSize()); // 3 vertices, starting at vertex array index 0
+		glDrawArrays(GL_TRIANGLES, 0, g->getSize()); // 3 vertices, starting at vertex array index 0
 		glBindVertexArray(0);
 
+
+		currentProgram = unlitProgram;
+		glUseProgram(currentProgram);
+		setProjectionMatrix(currentProgram, projection);
+		setViewMatrix(currentProgram, view);
 		//draw axes
+		mat4 axisWorldMatrix = worldMatrix * mat4(1);
+		glLineWidth(5);
+		worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+		glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &axisWorldMatrix[0][0]);
 		glBindVertexArray(vao_axis);
 		glDrawArrays(GL_LINES, 0, 6);
 		glBindVertexArray(0);
+		glLineWidth(1);
 
+		//draw bubble
+		currentProgram = textureLitProgram;
+		glUseProgram(currentProgram);
 
+		for (auto &data : letterDigitDatas)
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDepthMask(GL_FALSE);
 
+			//draw ball
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, ballTex);
+			glBindVertexArray(vao_ball);
+			mat4 modelMatrix = worldMatrix * data.translation * data.rotation *data.scaling*data.shearing*translate(mat4(1), vec3(0, 0.2, 0))*scale(mat4(1), vec3(0.2));
+			worldmatrixlocation = glGetUniformLocation(currentProgram, "worldMatrix");
+			glUniformMatrix4fv(worldmatrixlocation, 1, GL_FALSE, &modelMatrix[0][0]);
+			glDrawArrays(mode, 0, ball->getSize()); // 3 vertices, starting at vertex array index 0
+			glBindVertexArray(0);
 
+			glDisable(GL_BLEND);
+			glDepthMask(GL_TRUE);
+
+		}
 
 		// End frame
 		glfwSwapBuffers(window); //render in the background buffer, and display the front buffer withn rendered image
@@ -523,526 +634,111 @@ int main(int argc, char*argv[])
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 
-		//when 1 is pressed		
-		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-				double mouseX, mouseY;
-				glfwGetCursorPos(window, &mouseX, &mouseY);
-				double dy = mouseY - lastMousePosY;
-				lastMousePosY = mouseY;
-				cameraPosition += 0.0009f *(float)dy* cameraLookAt;
-				float X = cameraPosition.x;
-				float Y = cameraPosition.y;
-				float Z = cameraPosition.z;
-
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-			//scale up and down
-			if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-
-				transformMatrix_1 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				factor += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-				if (factor > 0.0005)
-				{
-					factor -= 0.0005;
-					transformMatrix_1 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				}
-
-
-
-			}
-
-			//move the object
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-
-				transformMatrix_1 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving -= 0.0005;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-
-				transformMatrix_1 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving += 0.0005;
-
-			}
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-
-				transformMatrix_1 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-
-				transformMatrix_1 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise -= 0.0005;
-			}
-
-			// rotate 5 degree about Y axis
-			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-
-				RotatMatrix_1 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree += 5.0f;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-
-				RotatMatrix_1 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree -= 5.0f;
-			}
-			// home to reset
-			if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) {
-				float X = 0.2f;
-				float Y = 0.3f;
-				float Z = 1.0f;
-				cameraPosition = glm::vec3(X, Y, Z);
-				cameraLookAt = glm::vec3(0.0f, 0.0f, -1.0);
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-			// switch render modes
-			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-				mode = GL_POINTS;
-			}
-			if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-				mode = GL_LINES;
-			}
-			if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-				mode = GL_TRIANGLES;
-			}
-
-
-
+		int editModelIndex = -1;
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		{
+			editModelIndex = 0;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+		{
+			editModelIndex = 1;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+		{
+			editModelIndex = 2;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
+		{
+			editModelIndex = 3;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
+		{
+			editModelIndex = 4;
 		}
 
-		//when 2 is pressed
-		else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-				double mouseX, mouseY;
-				glfwGetCursorPos(window, &mouseX, &mouseY);
-				double dy = mouseY - lastMousePosY;
-				lastMousePosY = mouseY;
-				cameraPosition += 0.0009f *(float)dy* cameraLookAt;
-				float X = cameraPosition.x;
-				float Y = cameraPosition.y;
-				float Z = cameraPosition.z;
-
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
+		if (editModelIndex>=0&& editModelIndex<5)
+		{
 			//scale up and down
 			if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
 
-				transformMatrix_2 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				factor += 0.0005;
+				letterDigitDatas[editModelIndex].scaling = glm::scale(letterDigitDatas[editModelIndex].scaling, vec3(1.01, 1.01, 1.01));
 			}
 			if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-				if (factor > 0.0005)
-				{
-					factor -= 0.0005;
-					transformMatrix_2 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				}
-
-
-
+				letterDigitDatas[editModelIndex].scaling = glm::scale(letterDigitDatas[editModelIndex].scaling, vec3(1/1.01, 1 / 1.01, 1 / 1.01));
 			}
 
 			//move the object
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 
-				transformMatrix_2 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving -= 0.0005;
+				letterDigitDatas[editModelIndex].translation = glm::translate(letterDigitDatas[editModelIndex].translation, vec3(-0.05f, 0.0f, 0.0f));
 			}
 
 			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 
-				transformMatrix_2 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving += 0.0005;
-
+				letterDigitDatas[editModelIndex].translation = glm::translate(letterDigitDatas[editModelIndex].translation, vec3(0.05f, 0.0f, 0.0f));
 			}
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 
-				transformMatrix_2 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise += 0.0005;
+				letterDigitDatas[editModelIndex].translation = glm::translate(letterDigitDatas[editModelIndex].translation, vec3( 0.0f, 0.05f,0.0f));
 			}
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 
-				transformMatrix_2 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise -= 0.0005;
+				letterDigitDatas[editModelIndex].translation = glm::translate(letterDigitDatas[editModelIndex].translation, vec3(0.0f, -0.05f, 0.0f));
 			}
 
 			// rotate 5 degree about Y axis
 			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
 
-				RotatMatrix_2 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree += 5.0f;
+				letterDigitDatas[editModelIndex].rotation = glm::rotate(letterDigitDatas[editModelIndex].rotation, glm::radians(5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			}
 
 			if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-
-				RotatMatrix_2 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree -= 5.0f;
-			}
-			// home to reset
-			if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) {
-				float X = 0.2f;
-				float Y = 0.3f;
-				float Z = 1.0f;
-				cameraPosition = glm::vec3(X, Y, Z);
-				cameraLookAt = glm::vec3(0.0f, 0.0f, -1.0);
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+				letterDigitDatas[editModelIndex].rotation = glm::rotate(letterDigitDatas[editModelIndex].rotation, glm::radians(-5.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 			}
 
-			// switch render modes
-			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-				mode = GL_POINTS;
-			}
-			if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-				mode = GL_LINES;
-			}
-			if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-				mode = GL_TRIANGLES;
+			// rotate 5 degree about X axis
+			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS) {
+
+				letterDigitDatas[editModelIndex].rotation = glm::rotate(letterDigitDatas[editModelIndex].rotation, glm::radians(5.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			}
 
-		}
-		//When 3 is pressed
-		else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-				double mouseX, mouseY;
-				glfwGetCursorPos(window, &mouseX, &mouseY);
-				double dy = mouseY - lastMousePosY;
-				lastMousePosY = mouseY;
-				cameraPosition += 0.0009f *(float)dy* cameraLookAt;
-				float X = cameraPosition.x;
-				float Y = cameraPosition.y;
-				float Z = cameraPosition.z;
-
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
+				letterDigitDatas[editModelIndex].rotation = glm::rotate(letterDigitDatas[editModelIndex].rotation, glm::radians(-5.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			}
 
-			//scale up and down
-			if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-
-				transformMatrix_3 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				factor += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-				if (factor > 0.0005)
-				{
-					factor -= 0.0005;
-					transformMatrix_3 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				}
-
-
-
+			// shearing
+			if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS) {
+				mat4 shearing = mat4(
+					1, 0, 0, 0,
+					0.05, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1);
+				letterDigitDatas[editModelIndex].shearing = letterDigitDatas[editModelIndex].shearing*shearing;
 			}
 
-			//move the object
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-
-				transformMatrix_3 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving -= 0.0005;
+			if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
+				mat4 shearing = mat4(
+					1, 0, 0, 0,
+					-0.05, 1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1);
+				letterDigitDatas[editModelIndex].shearing = letterDigitDatas[editModelIndex].shearing*shearing;
 			}
-
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-
-				transformMatrix_3 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving += 0.0005;
-
-			}
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-
-				transformMatrix_3 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-
-				transformMatrix_3 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise -= 0.0005;
-			}
-
-			// rotate 5 degree about Y axis
-			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-
-				RotatMatrix_3 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree += 5.0f;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-
-				RotatMatrix_3 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree -= 5.0f;
-			}
-			// home to reset
-			if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) {
-				float X = 0.2f;
-				float Y = 0.3f;
-				float Z = 1.0f;
-				cameraPosition = glm::vec3(X, Y, Z);
-				cameraLookAt = glm::vec3(0.0f, 0.0f, -1.0);
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-			// switch render modes
-			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-				mode = GL_POINTS;
-			}
-			if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-				mode = GL_LINES;
-			}
-			if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-				mode = GL_TRIANGLES;
-			}
-
-
 		}
 
-		//when 4 is pressed
-		else if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-				double mouseX, mouseY;
-				glfwGetCursorPos(window, &mouseX, &mouseY);
-				double dy = mouseY - lastMousePosY;
-				lastMousePosY = mouseY;
-				cameraPosition += 0.0009f *(float)dy* cameraLookAt;
-				float X = cameraPosition.x;
-				float Y = cameraPosition.y;
-				float Z = cameraPosition.z;
-
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-			//scale up and down
-			if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-
-				transformMatrix_4 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				factor += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-				if (factor > 0.0005)
-				{
-					factor -= 0.0005;
-					transformMatrix_4 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				}
-
-
-
-			}
-
-			//move the object
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-
-				transformMatrix_4 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving -= 0.0005;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-
-				transformMatrix_4 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving += 0.0005;
-
-			}
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-
-				transformMatrix_4 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-
-				transformMatrix_4 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise -= 0.0005;
-			}
-
-			// rotate 5 degree about Y axis
-			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-
-				RotatMatrix_4 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree += 5.0f;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-
-				RotatMatrix_4 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree -= 5.0f;
-			}
-			// home to reset
-			if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) {
-				float X = 0.2f;
-				float Y = 0.3f;
-				float Z = 1.0f;
-				cameraPosition = glm::vec3(X, Y, Z);
-				cameraLookAt = glm::vec3(0.0f, 0.0f, -1.0);
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-			// switch render modes
-			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-				mode = GL_POINTS;
-			}
-			if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) {
-				mode = GL_LINES;
-			}
-			if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-				mode = GL_TRIANGLES;
-			}
-
-
-		}
-
-		//when 5 is pressed
-		else if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-				double mouseX, mouseY;
-				glfwGetCursorPos(window, &mouseX, &mouseY);
-				double dy = mouseY - lastMousePosY;
-				lastMousePosY = mouseY;
-				cameraPosition += 0.0009f *(float)dy* cameraLookAt;
-				float X = cameraPosition.x;
-				float Y = cameraPosition.y;
-				float Z = cameraPosition.z;
-
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-			//scale up and down
-			if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS) {
-
-				transformMatrix_5 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				factor += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-				if (factor > 0.0005)
-				{
-					factor -= 0.0005;
-					transformMatrix_5 = glm::scale(mat4(1.0f), vec3(1.0*factor, 1.0*factor, 1.0*factor));
-				}
-
-
-
-			}
-
-			//move the object
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-
-				transformMatrix_5 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving -= 0.0005;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-
-				transformMatrix_5 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				moving += 0.0005;
-
-			}
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-
-				transformMatrix_5 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise += 0.0005;
-			}
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-
-				transformMatrix_5 = glm::translate(mat4(1.0f), vec3(0.0 + moving, 0.0f + raise, 0.0f));
-				raise -= 0.0005;
-			}
-
-			// rotate 5 degree about Y axis
-			if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-
-				RotatMatrix_5 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree += 5.0f;
-			}
-
-			if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-
-				RotatMatrix_5 = glm::rotate(glm::mat4(1.0f), glm::radians(degree), glm::vec3(0.0f, 1.0f, 0.0f));
-				degree -= 5.0f;
-			}
-			// home to reset
-			if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) {
-				float X = 0.2f;
-				float Y = 0.3f;
-				float Z = 1.0f;
-				cameraPosition = glm::vec3(X, Y, Z);
-				cameraLookAt = glm::vec3(0.0f, 0.0f, -1.0);
-				glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-					cameraPosition + cameraLookAt,  // center
-					glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-				GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-				glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
-			}
-
-
-
-
+		// left button, zoom
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			cameraPosition += cameraLookAt*(float)dy*0.1f;
 		}
 
 		// right button, pan with respect to X
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
-			double mouseX, mouseY;
-			glfwGetCursorPos(window, &mouseX, &mouseY);
-			double dx = mouseX - lastMousePosX;
-			lastMousePosX = mouseX;
 			glm::vec3 cameraSideVector = glm::cross(cameraLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
 			glm::normalize(cameraSideVector);
-			cameraLookAt += 0.0009f *(float)dx * cameraSideVector;
+			cameraLookAt += 0.009f *(float)dx * cameraSideVector;
 			glm::mat4 viewMatrix = glm::lookAt(cameraPosition,  // eye
 				cameraPosition + cameraLookAt,  // center
 				glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
 		}
 
 		//middle button, tilt  with respect to Y
@@ -1051,115 +747,35 @@ int main(int argc, char*argv[])
 			glfwGetCursorPos(window, &mouseX, &mouseY);
 			double dy = mouseY - lastMousePosY;
 			lastMousePosY = mouseY;
-			cameraLookAt += 0.0009f *(float)dy * cameraUp;
-			glm::mat4 viewMatrix = glm::lookAt(cameraPosition,  // eye
-				cameraPosition + cameraLookAt,  // center
-				glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			cameraLookAt += 0.009f *(float)dy * cameraUp;
 		}
 
-		// Rx and R-x and Ry and R-y movement
-
+		// Rx and R-x and Ry and R-y world rotation
 		if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
 		{
-			float X = cameraPosition.x;
-			float Y = cameraPosition.y;
-			float Z = cameraPosition.z;
-			float radius = sqrtf(X * X + Z * Z);
-			float degree = atanf(Z / X);
-			float dd = 0.001f;
-			if (degree + dd < 3.14 / 2 && degree + dd>-3.14 / 2) {
-
-				X = radius * cos(degree + dd);
-				Z = radius * sin(degree + dd);
-			}
-			cameraPosition = glm::vec3(X, Y, Z);
-			glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-				cameraPosition + cameraLookAt,  // center
-				glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			worldMatrix = rotate(mat4(1), 0.1f, vec3(0, 1, 0))*worldMatrix;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		{
-			float X = cameraPosition.x;
-			float Y = cameraPosition.y;
-			float Z = cameraPosition.z;
-			float radius = sqrtf(X * X + Z * Z);
-			float degree = atanf(Z / X);
-			float dd = 0.001f;
-			if (degree - dd < 3.14 / 2 && degree - dd>-3.14 / 2) {
-
-				X = radius * cos(degree - dd);
-				Z = radius * sin(degree - dd);
-			}
-			cameraPosition = glm::vec3(X, Y, Z);
-			glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-				cameraPosition + cameraLookAt,  // center
-				glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			worldMatrix = rotate(mat4(1), 0.1f, vec3(0, -1, 0))*worldMatrix;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		{
-			float X = cameraPosition.x;
-			float Y = cameraPosition.y;
-			float Z = cameraPosition.z;
-			float radius = sqrtf(Y * Y + Z * Z);
-			float degree = atanf(Z / Y);
-			float dd = 0.001f;
-			if (degree + dd < 3.14 / 2 && degree + dd>-3.14 / 2) {
-				Y = radius * cos(degree + dd);
-				Z = radius * sin(degree + dd);
-			}
-			cameraPosition = glm::vec3(X, Y, Z);
-			glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-				cameraPosition + cameraLookAt,  // center
-				glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			worldMatrix = rotate(mat4(1), 0.1f, vec3(1, 0, 0))*worldMatrix;
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 		{
-			float X = cameraPosition.x;
-			float Y = cameraPosition.y;
-			float Z = cameraPosition.z;
-			float radius = sqrtf(Y * Y + Z * Z);
-			float degree = atanf(Z / Y);
-			float dd = 0.001f;
-			if (degree - dd < 3.14 / 2 && degree - dd>-3.14 / 2) {
-				Y = radius * cos(degree - dd);
-				Z = radius * sin(degree - dd);
-			}
-			cameraPosition = glm::vec3(X, Y, Z);
-			glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-				cameraPosition + cameraLookAt,  // center
-				glm::vec3(0.0f, 1.0f, 0.0f));// up
-
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			worldMatrix = rotate(mat4(1), 0.1f, vec3(-1, 0, 0))*worldMatrix;
 		}
 		// home to reset
 		if (glfwGetKey(window, GLFW_KEY_HOME) == GLFW_PRESS) {
-			float X = 0.2f;
-			float Y = 0.3f;
-			float Z = 1.0f;
-			cameraPosition = glm::vec3(X, Y, Z);
-			cameraLookAt = glm::vec3(0.0f, 0.0f, -1.0);
-			glm::mat4 viewMatrix = glm::lookAt(glm::vec3(X, Y, Z),  // eye
-				cameraPosition + cameraLookAt,  // center
-				glm::vec3(0.0f, 1.0f, 0.0f));// up
+			cameraPosition = vec3(0.0f, 50.0f, 80.0f);
+			cameraLookAt = vec3(0.0f, -5.0f, -8.0f);
 
-			GLuint viewMatrixLocation = glGetUniformLocation(shaderProgram, "viewMatrix");
-			glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &viewMatrix[0][0]);
+			worldMatrix = mat4(1);
 		}
 
 		// switch render modes
@@ -1172,10 +788,6 @@ int main(int argc, char*argv[])
 		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
 			mode = GL_TRIANGLES;
 		}
-
-
-
-
 
 	}
 
