@@ -1,6 +1,6 @@
 //
-// Yuvraj Singh Athwal(40075586), Rajat Arora(40078146), Zhen Long(27117507), Yiyang Zhou(), Divyluv Sharma(40014962)
-//PA 1
+// Yuvraj Singh Athwal(40075586), Rajat Arora(40078146), Zhen Long(27117507), Yiyang Zhou(40046467), Divyluv Sharma(40014962)
+//PA 2
 //Lab1, COMP371- https://moodle.concordia.ca/moodle/mod/resource/view.php?id=2306198
 
 
@@ -44,8 +44,8 @@ void setProjectionMatrix(int shader, mat4 projectionMatrix)
 	glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, &projectionMatrix[0][0]);
 }
 
-//main function
 
+bool shadowON=true;
 //letter and digit transform data
 struct LetterDigitData
 {
@@ -471,8 +471,10 @@ int main(int argc, char*argv[])
 				vec3(worldMatrix*lightUp)); // up
 			setProjectionMatrix(currentProgram, projection);
 			setViewMatrix(currentProgram, view);
-
-			lightVP = projection*view;
+			if(shadowON)
+				lightVP = projection*view;
+			else
+				lightVP=worldMatrix;
 			for (auto &data : letterDigitDatas)
 			{
 				glBindTexture(GL_TEXTURE_2D, boxTex);
@@ -787,6 +789,19 @@ int main(int argc, char*argv[])
 		}
 		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
 			mode = GL_TRIANGLES;
+		}
+		
+		//turning shadow ON/OFF
+		if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
+			if (shadowON) {
+				shadowON = false;
+
+			}
+			else {
+				shadowON = true;
+
+			}
+
 		}
 
 	}
