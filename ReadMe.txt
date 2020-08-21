@@ -17,3 +17,6 @@ C ¡ú rotate left 5 degrees about X axis, V ¡ú rotate right 5 degrees about X axi
 B ¡ú shear along +X axis, N ¡ú shear along -X axis.
 
 G ¡úcontinue shear along +X axis, H ¡ú ¡úcontinue  shear along -X axis,
+
+Q, W, E, A, S, D ¡ú rotate Rubik's Cube in one direction
+Q, W, E, A, S, D with Shift ¡ú rotate Rubik's Cube in the other direction

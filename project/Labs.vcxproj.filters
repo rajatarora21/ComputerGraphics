@@ -41,6 +41,9 @@
     <ClCompile Include="..\Source\sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Source\rubikCube.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Assets\Shaders\vertex_shader.glsl">
@@ -67,6 +70,9 @@
       <Filter>header</Filter>
     </ClInclude>
     <ClInclude Include="..\Source\sphere.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\rubikCube.h">
       <Filter>header</Filter>
     </ClInclude>
   </ItemGroup>

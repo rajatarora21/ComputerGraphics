@@ -1,6 +1,6 @@
 //
-// Yuvraj Singh Athwal(40075586), Rajat Arora(40078146), Zhen Long(27117507), Yiyang Zhou(), Divyluv Sharma(40014962)
-//PA 1
+// Yuvraj Singh Athwal(40075586), Rajat Arora(40078146), Zhen Long(27117507), Yiyang Zhou(40046467)
+//PA 3
 //Lab1, COMP371- https://moodle.concordia.ca/moodle/mod/resource/view.php?id=2306198
 
 
@@ -10,6 +10,7 @@
 #include "cube.h"
 #include "coord.h"
 #include "sphere.h"
+#include "rubikCube.h"
 
 //initializing OpenGL libraries
 #define GLEW_STATIC 1   
@@ -100,6 +101,7 @@ LetterDigitData letterDigitDatas[5] = {
 		false,
 		false,
 	},
+	/*
 	{
 		//V and 1 for Divyluv
 		{
@@ -118,6 +120,7 @@ LetterDigitData letterDigitDatas[5] = {
 		false,
 		false,
 	},
+	*/
 	{
 		//Y and 4 for Yiyang
 		{
@@ -160,7 +163,7 @@ LetterDigitData letterDigitDatas[5] = {
 			// top of 7
 			glm::translate(mat4(1.0f), vec3(0.05f,0.08f,0.00f))*glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f))*glm::scale(mat4(1.0f), vec3(0.02f, 0.1f, 0.02f)),
 		},
-		glm::translate(mat4(1.0f), vec3(0.0f,5.0f,0.0f)),//translation
+		glm::translate(mat4(1.0f), vec3(-35.0f,5.0f,-35.0f)),//translation
 		mat4(1),//rotation
 		glm::scale(mat4(1),vec3(50)),//scaling
 		mat4(1),//shearing
@@ -170,6 +173,8 @@ LetterDigitData letterDigitDatas[5] = {
 };
 
 int editingModelId = -1;
+int editModelIndex = -1;
+RubikCube rubikCube;
 
 void keyCallback(GLFWwindow *window, int keyCody, int scan,int action, int mods)
 {
@@ -210,6 +215,53 @@ void keyCallback(GLFWwindow *window, int keyCody, int scan,int action, int mods)
 			editingModelId = keyCody - '1';
 		}
 	}
+
+	if (action == GLFW_PRESS)
+	{
+		if (editModelIndex == -1)
+		{
+			if (keyCody == 'A') {
+				rubikCube.makeMove(RubikCube::L, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+			if (keyCody == 'D') {
+				rubikCube.makeMove(RubikCube::R, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+			if (keyCody == 'W') {
+				rubikCube.makeMove(RubikCube::U, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+			if (keyCody == 'S') {
+				rubikCube.makeMove(RubikCube::D, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+			if (keyCody == 'Q') {
+				rubikCube.makeMove(RubikCube::F, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+			if (keyCody == 'E') {
+				rubikCube.makeMove(RubikCube::B, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+		}
+	}
+
+}
+
+GLuint loadTexture(const char *file)
+{
+	GLuint tex=0;
+	int w, h;
+	unsigned char *pixels = stbi_load(file, &w, &h, 0, 4);
+	if (pixels)
+	{
+		glGenTextures(1, &tex);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		free(pixels);
+	}
+	return tex;
 }
 
 int main(int argc, char*argv[])
@@ -231,7 +283,7 @@ int main(int argc, char*argv[])
 #endif
 
 	// Create Window, resolution is 1024x768
-	GLFWwindow* window = glfwCreateWindow(1024, 768, "PA1", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1024, 768, "PA3", NULL, NULL);
 	
 	glfwSetKeyCallback(window, keyCallback);
 	if (window == NULL)
@@ -282,83 +334,23 @@ int main(int argc, char*argv[])
 	sphere* ball = new sphere();
 	int vao_ball = ball->createSphereArray();
 
+	rubikCube.initialize();
+	rubikCube.model = translate(mat4(1), vec3(0, 10, 0))*scale(mat4(1), vec3(5, 5, 5));
+	rubikCube.setCubeTexture(loadTexture("../Assets/Textures/cube.bmp"));
+	rubikCube.setFaceTexture({
+		loadTexture("../Assets/Textures/face1.png"),
+		loadTexture("../Assets/Textures/movie.jpg"),
+		loadTexture("../Assets/Textures/face6.png"),
+		loadTexture("../Assets/Textures/music.jpg"),
+		loadTexture("../Assets/Textures/face2.png"),
+		loadTexture("../Assets/Textures/game.jpg"),
+	});
 
-	GLuint grassTex;
-	GLuint boxTex;
-	GLuint metalTex;
-	GLuint ballTex;
 
-	{
-		int w, h;
-		unsigned char *pixels = stbi_load("../Assets/Textures/grass.jpg", &w, &h, 0, 4);
-		if (pixels)
-		{
-			glGenTextures(1, &grassTex);
-			glBindTexture(GL_TEXTURE_2D, grassTex);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			free(pixels);
-		}
-	}
-
-	{
-		int w, h;
-		unsigned char *pixels = stbi_load("../Assets/Textures/crate.jpg", &w, &h, 0, 4);
-		if (pixels)
-		{
-			glGenTextures(1, &boxTex);
-			glBindTexture(GL_TEXTURE_2D, boxTex);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			free(pixels);
-		}
-	}
-
-	{
-		int w, h;
-		unsigned char *pixels = stbi_load("../Assets/Textures/metal.jpg", &w, &h, 0, 4);
-		if (pixels)
-		{
-			glGenTextures(1, &metalTex);
-			glBindTexture(GL_TEXTURE_2D, metalTex);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			free(pixels);
-		}
-	}
-
-	{
-		int w, h;
-		unsigned char *pixels = stbi_load("../Assets/Textures/bubble.png", &w, &h, 0, 4);
-		if (pixels)
-		{
-			glGenTextures(1, &ballTex);
-			glBindTexture(GL_TEXTURE_2D, ballTex);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-			free(pixels);
-		}
-	}
+	GLuint grassTex = loadTexture("../Assets/Textures/grass.jpg");
+	GLuint boxTex = loadTexture("../Assets/Textures/crate.jpg");
+	GLuint metalTex = loadTexture("../Assets/Textures/metal.jpg");
+	GLuint ballTex = loadTexture("../Assets/Textures/bubble.png");
 
 	auto err = glGetError();
 
@@ -416,6 +408,8 @@ int main(int argc, char*argv[])
 	{
 		float dt = glfwGetTime() - lastFrameTime;
 		lastFrameTime += dt;
+
+		rubikCube.update(dt);
 
 		double mouseX, mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -497,6 +491,9 @@ int main(int argc, char*argv[])
 				}
 			}
 
+			//draw rubik cube
+			rubikCube.render(currentProgram, worldMatrix);
+
 			//draw grids
 			glBindVertexArray(vao_grid);
 			mat4 gridWorldMatrix = worldMatrix * mat4(1);
@@ -575,6 +572,10 @@ int main(int argc, char*argv[])
 			glUniform1f(roughnessLoc, 1.0);
 		}
 
+
+		//draw rubik's cube
+		rubikCube.render(currentProgram, worldMatrix);
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, grassTex);
 		//draw grids
@@ -630,11 +631,10 @@ int main(int argc, char*argv[])
 
 		// Detect inputs
 		glfwPollEvents();
-
+		editModelIndex = -1;
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 
-		int editModelIndex = -1;
 		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
 		{
 			editModelIndex = 0;
@@ -777,6 +777,11 @@ int main(int argc, char*argv[])
 
 			worldMatrix = mat4(1);
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
+			worldMatrix=mat4(1);
+		}
+
 
 		// switch render modes
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {

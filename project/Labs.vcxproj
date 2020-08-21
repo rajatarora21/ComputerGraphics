@@ -22,13 +22,13 @@
     <ProjectGuid>{277EAE68-9EED-4EFF-BAD3-2A70787A3E8D}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Labs</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -94,7 +94,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\ThirdParty\glm;..\ThirdParty\glfw-3.3\include;..\ThirdParty\glew-2.1.0\include;..\ComputerGraphics\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>I:\university\summer2020\comp371\project\ComputerGraphics\ThirdParty\glm;I:\university\summer2020\comp371\project\ComputerGraphics\ThirdParty\glfw-3.3\include;I:\university\summer2020\comp371\project\ComputerGraphics\ThirdParty\glew-2.1.0\include;I:\university\summer2020\comp371\project\ComputerGraphics\Source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -114,7 +114,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\ThirdParty\glm;..\glfw-3.3\include;..\glew-2.1.0\include;..\ComputerGraphics\Source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>I:\university\summer2020\comp371\project\ComputerGraphics\ThirdParty\glm;I:\university\summer2020\comp371\project\ComputerGraphics\ThirdParty\glfw-3.3\include;I:\university\summer2020\comp371\project\ComputerGraphics\ThirdParty\glew-2.1.0\include;I:\university\summer2020\comp371\project\ComputerGraphics\Source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -184,6 +184,7 @@
     <ClCompile Include="..\Source\cube.cpp" />
     <ClCompile Include="..\Source\grids.cpp" />
     <ClCompile Include="..\Source\main.cpp" />
+    <ClCompile Include="..\Source\rubikCube.cpp" />
     <ClCompile Include="..\Source\shaderloader.cpp" />
     <ClCompile Include="..\Source\sphere.cpp" />
   </ItemGroup>
@@ -196,6 +197,7 @@
     <ClInclude Include="..\Source\cube.h" />
     <ClInclude Include="..\Source\grids.h" />
     <ClInclude Include="..\Source\main.h" />
+    <ClInclude Include="..\Source\rubikCube.h" />
     <ClInclude Include="..\Source\shaderloader.h" />
     <ClInclude Include="..\Source\sphere.h" />
   </ItemGroup>
