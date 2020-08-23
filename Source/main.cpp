@@ -28,7 +28,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
+#include "main.h"
+#include "textRenderer.h"
 using namespace std;
 using namespace glm;
 
@@ -175,6 +176,9 @@ LetterDigitData letterDigitDatas[5] = {
 int editingModelId = -1;
 int editModelIndex = -1;
 RubikCube rubikCube;
+float playTime = 0;
+bool playing = false;
+TextRenderer timeText;
 
 void keyCallback(GLFWwindow *window, int keyCody, int scan,int action, int mods)
 {
@@ -237,6 +241,10 @@ void keyCallback(GLFWwindow *window, int keyCody, int scan,int action, int mods)
 			}
 			if (keyCody == 'E') {
 				rubikCube.makeMove(RubikCube::B, glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS);
+			}
+			if (keyCody==' ')
+			{
+ 				playing = !playing;
 			}
 		}
 	}
@@ -308,6 +316,7 @@ int main(int argc, char*argv[])
 	GLuint textureLitProgram;
 	GLuint unlitProgram;
 	GLuint depthProgram;
+	GLuint fontProgram;
 
 	GLuint currentProgram;
 
@@ -319,6 +328,7 @@ int main(int argc, char*argv[])
 	unlitProgram = shaderloader::LoadShaders(shaderPathPrefix + "vertex_shader_color.glsl", shaderPathPrefix + "fragment_shader_color.glsl");
 	textureLitProgram = shaderloader::LoadShaders(shaderPathPrefix + "vertex_shader.glsl", shaderPathPrefix + "fragment_shader.glsl");
 	depthProgram = shaderloader::LoadShaders(shaderPathPrefix + "vertex_depth.glsl", shaderPathPrefix + "fragment_depth.glsl");
+	fontProgram= shaderloader::LoadShaders(shaderPathPrefix + "font_vert.glsl", shaderPathPrefix + "font_frag.glsl");
 
 	vec3 cameraPosition(0.0f, 50.0f, 80.0f);
 	vec3 cameraLookAt(0.0f, -5.0f, -8.0f);
@@ -351,6 +361,8 @@ int main(int argc, char*argv[])
 	GLuint boxTex = loadTexture("../Assets/Textures/crate.jpg");
 	GLuint metalTex = loadTexture("../Assets/Textures/metal.jpg");
 	GLuint ballTex = loadTexture("../Assets/Textures/bubble.png");
+
+	timeText.setFontTexture(loadTexture("../Assets/Textures/ascii.png"));
 
 	auto err = glGetError();
 
@@ -410,6 +422,11 @@ int main(int argc, char*argv[])
 		lastFrameTime += dt;
 
 		rubikCube.update(dt);
+
+		if (playing)
+		{
+			playTime += dt;
+		}
 
 		double mouseX, mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
@@ -626,6 +643,19 @@ int main(int argc, char*argv[])
 
 		}
 
+		//render text
+		currentProgram = fontProgram;
+		glUseProgram(currentProgram);
+		setProjectionMatrix(currentProgram, ortho<float>(0, width, 0, height, -100, 100));
+		timeText.setPosition({ 50,height - 50 });
+		char text[256] = "";
+		sprintf(text, "TIME:%.02fs", playTime);
+		timeText.setPosition({ 50,height - 50 });
+		timeText.setText(text);
+		timeText.render(currentProgram);
+
+
+
 		// End frame
 		glfwSwapBuffers(window); //render in the background buffer, and display the front buffer withn rendered image
 
@@ -780,8 +810,9 @@ int main(int argc, char*argv[])
 
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 			worldMatrix=mat4(1);
+			rubikCube.reset();
+			playTime = 0;
 		}
-
 
 		// switch render modes
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {

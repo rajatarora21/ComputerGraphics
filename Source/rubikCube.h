@@ -70,6 +70,7 @@ public:
 
 	void update(float dt);
 	void makeMove(Move move,bool cw);
+	void reset();
 
 	void initialize();
 	void render(GLuint shader,glm::mat4 worldMatrix);

@@ -289,6 +289,15 @@ void RubikCube::makeMove(Move move, bool cw)
 	currentMove.valid = true;
 }
 
+void RubikCube::reset()
+{
+	currentMove.valid = false;
+	for (auto c : cubes)
+	{
+		c->rotation = c->originalRotation = mat4(1);
+	}
+}
+
 void RubikCube::initialize()
 {
 	model = mat4(1);
