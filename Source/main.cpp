@@ -807,6 +807,10 @@ int main(int argc, char*argv[])
 
 			worldMatrix = mat4(1);
 		}
+		// launch timer
+		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+			playing = true;
+		}
 
 		if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) {
 			worldMatrix=mat4(1);
