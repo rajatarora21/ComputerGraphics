@@ -60,7 +60,7 @@ struct LetterDigitData
 	bool continueShearXPos;
 	bool continueShearXNeg;
 };
-
+bool shadow = true;
 LetterDigitData letterDigitDatas[5] = {
 	{
 		//draw sujects first name zhen and 3th alphabet E
@@ -482,8 +482,10 @@ int main(int argc, char*argv[])
 				vec3(worldMatrix*lightUp)); // up
 			setProjectionMatrix(currentProgram, projection);
 			setViewMatrix(currentProgram, view);
-
-			lightVP = projection*view;
+			if (shadow)
+				lightVP = projection * view;
+			else
+				lightVP = worldMatrix;
 			for (auto &data : letterDigitDatas)
 			{
 				glBindTexture(GL_TEXTURE_2D, boxTex);
@@ -828,6 +830,15 @@ int main(int argc, char*argv[])
 		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
 			mode = GL_TRIANGLES;
 		}
+
+		if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
+			if (shadow)
+				shadow = false;
+			else
+				shadow = true;
+		}
+
+
 
 	}
 
